@@ -1,29 +1,42 @@
-'''
-1395059493.847eb5f.15640fd231f1427cac2880683aca1df6
+import json
+import urllib.request
 
-Authorize: 
-https://www.instagram.com/oauth/authorize/?client_id=847eb5f761f84423b8921c2359540197&redirect_uri=http://ashiqueh.me/&response_type=token&scope=public_content
+with open('key.txt', 'r') as f:
+	key = f.readline()
 
-process:
+term = 'food' #search term from user input
+num_tags = 5 # number of tags to search
 
-http://stackoverflow.com/questions/13921910/python-urllib2-receive-json-response-from-url
-basically use urllib and json, and do some clever stuff with the data 
+# key is my secret key, which i'm using for testing purposes
 
-sandbox mode = just returns posts from me .... well that's stupid, instagram...  prolly reasons
-	- make some fake posts / edit my own recent post descriptions to test this in sandbox i guess??
-	- or make a fake IG account to test with??
+# Authorize: https://www.instagram.com/oauth/authorize/?client_id=847eb5f761f84423b8921c2359540197&redirect_uri=http://ashiqueh.me/&response_type=token&scope=public_content
 
-user enters search term
-get search results from tags/search
-take 3? most popular tags, and retrieve recent posts on that
-parse through descriptions, find posts with:
-	- percent signs
-	- numbers from 0-100
-	- all caps words
-	- "discount", "code", "off", "free", etc... (keywords)
-initially, return the raw text of these posts
-now the fun part... figure out a way to view the actual discount code and eliminate the noise
-display codes!!
+# json response with list of tags
+response = urllib.request.urlopen('https://api.instagram.com/v1/tags/search?q=' + term + '&access_token=' + key)
 
-'''
+#lol ghetto py3 workaround. 
+response_string = response.read().decode('utf-8')
 
+#now that response is a string, we can get the json object:
+data = json.loads(response_string)
+
+#gets data array from json object
+data = data['data'] 
+
+l = [] # dict for tags
+
+for obj in data:
+	l.append ([obj['name'],obj['media_count']])
+# now we have a neat list of lists [ [name,coutn] ] !!
+
+# sort high to low by 2nd element (count)
+l.sort(key=lambda o:o[1])
+l.reverse()
+
+# trim list
+l = l[:num_tags]
+
+#extract just the tags
+tags = [item[0] for item in l]
+
+print (tags)
