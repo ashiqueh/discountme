@@ -1,6 +1,8 @@
 import json
 import urllib.request
 
+print("Don't forget to chcp 65001") # this is a reminder to me when i run this program from command line
+
 with open('key.txt', 'r') as f:
 	key = f.readline()
 
@@ -40,3 +42,25 @@ l = l[:num_tags]
 tags = [item[0] for item in l]
 
 print (tags)
+
+# now we get the recent posts for those tags. 
+
+#https://api.instagram.com/v1/tags/{tag-name}/media/recent?access_token=ACCESS-TOKEN
+
+posts = [] #all posts
+
+for tag in tags:
+	response = urllib.request.urlopen('https://api.instagram.com/v1/tags/'+ tag + '/media/recent?' + '&access_token=' + key)
+	response_string = response.read().decode('utf-8')
+	data = json.loads(response_string)
+	data = data['data'] # array of posts
+	for obj in data:
+		posts.append([obj['caption'],obj['likes'],obj['link']])
+
+print(posts)
+
+#now i have a list of posts 
+#need to retrieve more posts, check notes for SO link to potential solution 
+#retrieve posts, and validate each to see if it's relevant
+#for now, print out body text of the posts which are relevant
+
