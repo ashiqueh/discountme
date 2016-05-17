@@ -1,22 +1,33 @@
 import json
 import urllib.request
+import urllib.parse
+import urllib.error
 import itertools
+from base64 import b64encode
+
+import json
+from pprint import pprint
 
 print("Don't forget to chcp 65001") # this is a reminder to me when i run this program from command line
 
 with open('key.txt', 'r') as f:
-	key = f.readline()
+	igkey = f.readline()
+	f.readline()
+	twitterkey = f.readline().strip()
+	f.readline()
+	consumer_key = f.readline() 
+	consumer_secret = f.readline()
 
 term = 'food' #search term from user input
 num_tags = 5 # number of tags to search
 num_pages = 3 # number of pages to search
-
+'''
 # key is my secret key, which i'm using for testing purposes
 
-# Authorize: https://www.instagram.com/oauth/authorize/?client_id=847eb5f761f84423b8921c2359540197&redirect_uri=http://ashiqueh.me/&response_type=token&scope=public_content
+# Authorize: https://www.instagram.com/oauth/authorize/?client_id=ID&redirect_uri=http://ashiqueh.me/&response_type=token&scope=public_content
 
 # json response with list of tags
-response = urllib.request.urlopen('https://api.instagram.com/v1/tags/search?q=' + term + '&access_token=' + key)
+response = urllib.request.urlopen('https://api.instagram.com/v1/tags/search?q=' + term + '&access_token=' + igkey)
 
 #lol ghetto py3 workaround. 
 response_string = response.read().decode('utf-8')
@@ -44,40 +55,98 @@ l = l[:num_tags]
 tags = [item[0] for item in l]
 
 print (tags)
+'''
 
-# now we get the recent posts for those tags. 
 
-#https://api.instagram.com/v1/tags/{tag-name}/media/recent?access_token=ACCESS-TOKEN
+#Twitter authentication and stuff :)
 
-posts = [] #all posts
 
-for tag in tags:
-	next_min_id = ""
-	for i in range(0, num_pages):
-		response = urllib.request.urlopen('https://api.instagram.com/v1/tags/'+ tag + '/media/recent?' + '&count=33&next_min_id=' + next_min_id + '&access_token=' + key)
-		#print('https://api.instagram.com/v1/tags/'+ tag + '/media/recent?' + '&count=33&access_token=' + key)
-		response_string = response.read().decode('utf-8')
-		data = json.loads(response_string)
-		#pagination info
-		pagination = data.get('pagination', '')
-		#print (pagination)
-		next_min_id = pagination.get('next_min_id', '') #get the next page id if it exists 
-		data = data['data'] # array of posts
-		for obj in data:
-			posts.append([obj['caption'],obj['likes'],obj['link']])
 
-#posts = list(set(posts)) #remove duplicates
+print(twitterkey)
+btwitter = twitterkey.encode('utf-8')
+b64twitter = b64encode(btwitter)
+twitterkey = bytes.decode(b64twitter)
+print(twitterkey)
+url = "https://api.twitter.com/oauth2/token"
+#data = {"grant_type" : "client_credentials"}
+#data = urllib.parse.urlencode(data)
+data = "grant_type=client_credentials"
+data = data.encode('utf-8')
+headers = {'Authorization' : "Basic "+twitterkey+"", 'Content-Length' : '29','User-Agent':'myapp v1','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}
+method = "POST"
+request = urllib.request.Request(url,data,headers,method)
+try:
+	response = urllib.request.urlopen(request)
+except urllib.error.HTTPError as e:
+	print(e.fp.read())
+	print("ERROR: 403, rate limit exceeded")
 
-#removes duplicates in posts 
+auth_response = bytes.decode(response.read())
+auth_response_json = json.loads(auth_response)
+bearer_token = auth_response_json['access_token']
 
-# THIS DOESNT WORK because the count on each post is different, even if the post is the same - remove count and solve the problem. 
-posts=list(posts for posts,_ in itertools.groupby(posts))
-print(posts)
+print(response.read())
+print(bearer_token)
+print(type(bearer_token))
 
-#now i have a list of posts 
-#need to retrieve more posts, check notes for SO link to potential solution 
-# -- above is basically done .. 
+'''
+GET /1.1/search/tweets.json?q=danielwellington&count=30 HTTP/1.1
+Host: api.twitter.com
+User-Agent: My Twitter App v1.0.23
+Authorization: Bearer AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA%2FAAAAAAAAAAAA
+                      AAAAAAAA%3DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Accept-Encoding: gzip
+'''
 
-#retrieve posts, and validate each to see if it's relevant
-#for now, print out body text of the posts which are relevant
+bearer_dict = "Bearer " + bearer_token
+print("Bearer dict: " + bearer_dict)
 
+url = 'https://api.twitter.com/1.1/search/tweets.json?q=danielwellington&count=100'
+headersz = {'User-Agent' : "discount-me", 'Authorization' : bearer_dict}
+headersz = {}
+print(type(headers))
+method = 'GET'
+
+data=""
+data  = data.encode('utf-8')
+
+headers = {'Authorization' : "Bearer "+bearer_token+"", 'User-Agent':'myapp v1'}
+
+request = urllib.request.Request(url, data=None, headers=headers, method=method)
+response = urllib.request.urlopen(request)
+
+search_response = bytes.decode(response.read())
+search_response_json = json.loads(search_response)
+
+with open('response100.json', 'w') as out:
+	json.dump(search_response_json, out, indent=4)
+
+#print(search_response_json) #IT WORKED!!!
+
+#cache the token from response
+
+#import twitter.oauth_dance
+
+#access_key, access_secret = twitter.oauth_dance("discount-me", consumer_key, consumer_secret)
+
+
+#(url, data=None, headers={}, origin_req_host=None, unverifiable=False, method=None)
+
+'''
+with open('response2.json', encoding="utf-8") as data_file:    
+    data = json.load(data_file)
+
+data = data['statuses'] #unwrap statuses
+
+data = data.decode('utf-8')
+
+texts = []
+urls = []
+
+for point in data:
+	texts.append(data['text'])
+	urls.append(data['urls']['url'])
+
+
+#pprint(data)
+'''
