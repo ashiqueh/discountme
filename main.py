@@ -60,7 +60,8 @@ print (tags)
 
 #Twitter authentication and stuff :)
 
-
+query = "daniel wellington"
+query = query.encode('ascii') #encode to ascii
 
 print(twitterkey)
 btwitter = twitterkey.encode('utf-8')
@@ -101,7 +102,7 @@ Accept-Encoding: gzip
 bearer_dict = "Bearer " + bearer_token
 print("Bearer dict: " + bearer_dict)
 
-url = 'https://api.twitter.com/1.1/search/tweets.json?q=danielwellington&count=100'
+url = 'https://api.twitter.com/1.1/search/tweets.json?q='+ query +'&count=100'
 headersz = {'User-Agent' : "discount-me", 'Authorization' : bearer_dict}
 headersz = {}
 print(type(headers))
@@ -131,22 +132,3 @@ with open('response100.json', 'w') as out:
 
 
 #(url, data=None, headers={}, origin_req_host=None, unverifiable=False, method=None)
-
-'''
-with open('response2.json', encoding="utf-8") as data_file:    
-    data = json.load(data_file)
-
-data = data['statuses'] #unwrap statuses
-
-data = data.decode('utf-8')
-
-texts = []
-urls = []
-
-for point in data:
-	texts.append(data['text'])
-	urls.append(data['urls']['url'])
-
-
-#pprint(data)
-'''
