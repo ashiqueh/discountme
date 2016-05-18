@@ -1,1 +1,1 @@
-"# discountme" 
+Retrieves discount codes from Twitter

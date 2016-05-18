@@ -12,7 +12,7 @@ print("Don't forget to chcp 65001") # this is a reminder to me when i run this p
 
 with open('key.txt', 'r') as f:
 	igkey = f.readline()
-	f.readline()
+	f.readline() 
 	twitterkey = f.readline().strip()
 	f.readline()
 	consumer_key = f.readline() 
