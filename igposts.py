@@ -3,6 +3,46 @@
 
 #https://api.instagram.com/v1/tags/{tag-name}/media/recent?access_token=ACCESS-TOKEN
 
+'''
+# key is my secret key, which i'm using for testing purposes
+
+# Authorize: https://www.instagram.com/oauth/authorize/?client_id=ID&redirect_uri=http://ashiqueh.me/&response_type=token&scope=public_content
+
+# json response with list of tags
+response = urllib.request.urlopen('https://api.instagram.com/v1/tags/search?q=' + term + '&access_token=' + igkey)
+
+#lol ghetto py3 workaround. 
+response_string = response.read().decode('utf-8')
+
+#now that response is a string, we can get the json object:
+data = json.loads(response_string)
+
+#gets data array from json object
+data = data['data'] 
+
+l = [] # dict for tags
+
+for obj in data:
+	l.append ([obj['name'],obj['media_count']])
+# now we have a neat list of lists [ [name,coutn] ] !!
+
+# sort high to low by 2nd element (count)
+l.sort(key=lambda o:o[1])
+l.reverse()
+
+# trim list
+l = l[:num_tags]
+
+#extract just the tags
+tags = [item[0] for item in l]
+
+print (tags)
+'''
+
+#term = 'food' #search term from user input
+#num_tags = 5 # number of tags to search
+#num_pages = 3 # number of pages to search
+
 posts = [] #all posts
 
 for tag in tags:

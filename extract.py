@@ -1,66 +1,48 @@
 import json
 
+def get_codes(texts):
+	'''
+	Return a list of codes given a list of tweet texts 
+	'''
+	likely_discounts = []
 
-#wrap these guys in functions:
-# extract text
-# extract url (uhh)
-# extract like texts
-# extract percentages
-# extract discount codes, clean codes
+	# pick posts with certain keywords 
+	keywords = ['discount', 'off', 'code', 'free', 'save', '%']
+	for entry in texts: 
+		if any(keyword in entry for keyword in keywords):
+			likely_discounts.append(entry)
+			#print(entry)
 
-with open('response100.json', encoding="utf-8") as data_file:    
-    data = json.load(data_file)
+	likely_codes = []
 
-data = data['statuses'] #unwrap statuses
+	# most codes are either in all caps or in quotation marks, pick these words
+	for entry in likely_discounts:
+		temp = entry.split('\"') #checks for quoted values
+		for chunk in temp:
+			if ([chunk.strip()] == chunk.strip().split()):
+				#print (chunk.strip())
+				likely_codes.append(chunk.strip())
 
-#data = data.decode('utf-8')
+		temp = entry.split(' ') #checks for all caps 
+		for chunk in temp:
+			if (chunk.isupper()):
+				likely_codes.append(chunk)
 
-texts = []
-#urls = []
+	# remove duplicates
+	likely_codes = set(likely_codes)
 
-#print(data)
+	cleaned_codes = []
 
-#print (type(data[0]['entities']['media'][0]['url']))
+	# remove quotation marks and duplicates
+	for entry in likely_codes:
+		cleaned_codes.append(entry.replace('"', ''))
+	cleaned_codes = set(cleaned_codes)
 
-for idx,entry in enumerate(data):
-	texts.append(data[idx].get('text',''))
+	lengthy_codes = []
 
-	##print (data[idx].get('text','')) # works for text
-	##print (data[idx].get('entities','')) #works for entities
-	##print (data[idx].get('entities','').get('media','')) #works for entities
-
-	#CONCLUSION: urls are not uniformly placed - why twitter?!?!?! 
-
-likely_discounts = []
-
-for entry in texts: #i think this can be made more efficient - look for all words on one pass through ? 
-	if ('%' in entry) or ('discount' in entry) or ('off' in entry) or ('code' in entry) or ('free' in entry):
-		likely_discounts.append(entry)
-		#print(entry)
-
-# now that we have the likely candidates, we can try and parse for a number (not sure how to do)
-
-# after, we can extract the actual discount code, as follows:
-
-# split at quotation marks
-# parse through each entry, and if the size is just one word, add this to the list of likely codes
-
-likely_codes = []
-
-for entry in likely_discounts:
-	temp = entry.split('\"')
-	for chunk in temp:
-		if ([chunk.strip()] == chunk.strip().split()):
-			#print (chunk.strip())
-			likely_codes.append(chunk.strip())
-
-likely_codes = set(likely_codes)
-
-cleaned_codes = []
-
-for entry in likely_codes:
-	cleaned_codes.append(entry)
-
-for entry in likely_codes:
-	print (entry)
-		
+	# remove codes that are too short, these are usually false positives 
+	for entry in cleaned_codes:
+		if len(entry) > 3:
+			lengthy_codes.append(entry)
+	return lengthy_codes
+			
