@@ -15,3 +15,8 @@ if __name__ == "__main__":
 
 	for code in result:
 		print (code)
+
+
+	r = extract.get_likely_tweets(list_of_tweets)
+	for t in r:
+		print(t)

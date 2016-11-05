@@ -1,9 +1,6 @@
 import json
 
-def get_codes(texts):
-	'''
-	Return a list of codes given a list of tweet texts 
-	'''
+def get_likely_tweets(texts):
 	likely_discounts = []
 
 	# pick posts with certain keywords 
@@ -12,6 +9,11 @@ def get_codes(texts):
 		if any(keyword in entry for keyword in keywords):
 			likely_discounts.append(entry)
 			#print(entry)
+	return likely_discounts
+
+def get_likely_codes(texts):
+	
+	likely_discounts = get_likely_tweets(texts)
 
 	likely_codes = []
 
@@ -30,6 +32,13 @@ def get_codes(texts):
 
 	# remove duplicates
 	likely_codes = set(likely_codes)
+	return likely_codes
+
+def get_codes(texts):
+	'''
+	Return a list of codes given a list of tweet texts 
+	'''
+	likely_codes = get_likely_codes(texts)
 
 	cleaned_codes = []
 

@@ -35,17 +35,17 @@ def get_tweets_from_api(key, tags):
 	twitterkey = bytes.decode(b64twitter)
 
 	# twitter api stuff: authentication 
-	url = "https://api.twitter.com/oauth2/token"
-	data = "grant_type=client_credentials"
+	url = u"https://api.twitter.com/oauth2/token"
+	data = u"grant_type=client_credentials"
 	data = data.encode('utf-8')
-	headers = {'Authorization' : "Basic "+twitterkey+"", 'Content-Length' : '29','User-Agent':'myapp v1','Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}
-	method = "POST"
+	headers = {u'Authorization' : u"Basic "+twitterkey+"", 'Content-Length' : u'29',u'User-Agent':u'myapp v1',u'Content-Type':u'application/x-www-form-urlencoded;charset=UTF-8'}
+	method = "POST".encode('utf-8')
 	request = urllib.request.Request(url,data,headers,method)
 	try:
 		response = urllib.request.urlopen(request)
 	except urllib.error.HTTPError as e:
 		print(e.fp.read())
-		print("ERROR: 403, rate limit exceeded") 
+		print("ERROR: 403, rate limit exceeded.. probably") 
 
 	# TODO: Cache the bearer token so it's only refreshed occasionally 
 	# grab bearer_token from twitter API response 
@@ -55,9 +55,22 @@ def get_tweets_from_api(key, tags):
 
 	list_of_tweet_texts = []
 
+	#ttags = (tag for tag in tags if isinstance(tag, unicode)) #removes un-encodable characters
+
+	#for tag in tags:
+	#	tag = urllib.parse.unquote(tag).encode('gbk')
+	#	tag = urllib.parse.quote(tag)
+
+
 	for tag in tags:
 		# more twitter api stuff: this is where the search api is used 
-		url = 'https://api.twitter.com/1.1/search/tweets.json?q='+ tag +'&count=100'
+		t = urllib.parse.quote(tag) # url encodes tags with special characters
+		url = 'https://api.twitter.com/1.1/search/tweets.json?q='+ t +'&count=100'
+		#scheme, netloc, path, query, fragment = urllib.parse.urlsplit(url) # must encode because tags may not be properly encoded
+		#path = urllib.parse.quote(path)
+		#url = urllib.parse.urlunsplit((scheme, netloc, path, query, fragment))
+		#url = urllib.parse.quote(url)
+		#url = urllib.parse.unquote(url)
 		method = 'GET'
 		data = ""
 		data  = data.encode('utf-8')
@@ -66,6 +79,7 @@ def get_tweets_from_api(key, tags):
 		request = urllib.request.Request(url, data=None, headers=headers, method=method)
 		# decode response to json 
 		response = urllib.request.urlopen(request)
+
 		search_response = bytes.decode(response.read())
 		search_response_json = json.loads(search_response)
 
